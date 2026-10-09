@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Inspect the background behind your text. A local contrast playground for photographs and gradients, with evidence you can take away.">
+  <meta name="theme-color" content="#f3f5f4">
+  <title>Contrast Evidence — look behind the text</title>
+  <link rel="icon" href="assets/mark.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#playground">Skip to playground</a>
+  <div class="page">
+    <header class="site-header">
+      <a class="wordmark" href="./" aria-label="Contrast Evidence home"><img src="assets/mark.svg" alt="" width="28" height="28"><span>Contrast<span class="wordmark-light"> Evidence</span></span></a>
+      <nav aria-label="Main"><a href="#method">How it works</a><a class="source-link" href="https://github.com/builtbyhuy/contrast-evidence">GitHub <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 15 15 5M5 5h10v10" stroke="currentColor" stroke-width="1.5"/></svg></a></nav>
+    </header>
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div><p class="intro-note"><span></span> An open-source contrast workbench</p><h1 id="page-title">Look behind<br>the text.</h1></div>
+        <div class="intro-right"><p>A good color pair can get lost in a photo.<br>Check the actual background, find the weakest spot,<br class="desktop-break"> and take the evidence with you.</p><span class="local-note"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="4" y="8" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M6.5 8V5.5a3.5 3.5 0 0 1 7 0V8" stroke="currentColor" stroke-width="1.3"/></svg> Your images stay in this browser.</span></div>
+      </section>
+
+      <section class="workbench" id="playground" aria-label="Interactive contrast playground">
+        <div class="preview-column">
+          <div class="preview-toolbar"><div class="preview-title"><h2>Live preview</h2><p class="preview-live-result"><span id="previewRatio">—</span><span id="previewStatus">Preparing check</span></p></div><div class="segmented view-toggle" role="group" aria-label="Preview crop"><button type="button" data-view="wide" aria-pressed="true"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="2" y="3" width="16" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M6 17h8M10 14v3" stroke="currentColor" stroke-width="1.3"/></svg>Wide</button><button type="button" data-view="narrow" aria-pressed="false"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="5" y="1.5" width="10" height="17" rx="2" stroke="currentColor" stroke-width="1.3"/><path d="M9 15.5h2" stroke="currentColor" stroke-width="1.3"/></svg>Narrow</button></div></div>
+          <div class="stage-surround">
+            <div class="stage" id="stage" data-view="wide">
+              <canvas id="backgroundCanvas" aria-hidden="true"></canvas>
+              <span class="sample-text" id="sampleText">Good design\nstands up to\na closer look.</span>
+              <div class="area-outline" id="areaOutline" aria-hidden="true"></div>
+              <div class="worst-marker" id="worstMarker" aria-hidden="true"><span></span></div>
+              <span class="area-tag" id="areaTag" aria-hidden="true">Text area</span>
+            </div>
+          </div>
+          <div class="preview-caption"><span id="previewDimensions">Preparing preview…</span><label class="marker-toggle"><input type="checkbox" id="showMarker" checked><span>Show inspection area</span></label></div>
+          <div class="pixel-legend" id="pixelLegend" hidden><span><i id="textSwatch" aria-hidden="true"></i>Text <b id="textColorLabel">#ffffff</b></span><span><i id="spotSwatch" aria-hidden="true"></i>Weakest background <b id="spotColorLabel">—</b></span></div>
+          <div class="photo-credit" id="photoCredit">Photo: <a href="https://www.pexels.com/photo/close-up-of-fixing-a-bicycle-10263877/">Rehook Bike / Pexels</a>. Sample text is for demonstration.</div>
+        </div>
+
+        <form class="controls" id="controls" aria-label="Preview controls">
+          <div class="controls-heading"><h2>Make an adjustment</h2><button class="text-button" id="resetButton" type="button">Reset</button></div>
+          <fieldset class="control-group"><legend>Background</legend><div class="segmented background-toggle" role="group" aria-label="Background type"><button type="button" data-background="photo" aria-pressed="true">Photograph</button><button type="button" data-background="gradient" aria-pressed="false">Gradient</button></div>
+            <div id="photoControls"><label class="upload-button" for="imageUpload"><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 13V2M6 6l4-4 4 4M3 12v5h14v-5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg> Choose your own image</label><input id="imageUpload" class="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="uploadHelp uploadMessage"><p class="field-help" id="uploadHelp">Static PNG, JPEG or WebP. Up to 8 MB, 16 megapixels and 6,000 px per side.</p><p class="upload-message" id="uploadMessage" role="status"></p><div class="range-header"><label for="cropPosition">Vertical crop</label><output for="cropPosition" id="cropValue">50%</output></div><input id="cropPosition" type="range" min="0" max="100" value="50" aria-label="Vertical crop position"><div class="range-endpoints"><span>Top</span><span>Bottom</span></div></div>
+            <div id="gradientControls" hidden><div class="gradient-colors"><label>Start color<input type="color" id="gradientStart" value="#bcd5fa"></label><label>End color<input type="color" id="gradientEnd" value="#213e91"></label></div><p class="field-help">A diagonal gradient, drawn into the same preview background.</p></div>
+          </fieldset>
+          <fieldset class="control-group"><legend>Text</legend><label class="visually-hidden" for="sampleInput">Preview text</label><textarea id="sampleInput" rows="3" maxlength="100" spellcheck="false">Good design
+stands up to
+a closer look.</textarea><div class="text-settings"><div><label for="foregroundHex">Text color</label><div class="color-field"><input type="color" id="foregroundColor" value="#ffffff" aria-label="Choose text color"><input type="text" id="foregroundHex" value="#ffffff" spellcheck="false" maxlength="7" aria-describedby="colorError"></div></div><div><label for="fontStyle">Typeface</label><select id="fontStyle"><option value="sans">Instrument Sans</option><option value="serif">Georgia</option></select></div></div><p class="validation-message" id="colorError" role="status"></p><div class="range-header"><label for="fontSize">Text size</label><output for="fontSize" id="sizeValue">52 px</output></div><input id="fontSize" type="range" min="14" max="72" value="52"><div class="weight-field"><label for="fontWeight">Weight</label><select id="fontWeight"><option value="400">Regular</option><option value="600">Semibold</option><option value="700" selected>Bold</option></select></div></fieldset>
+          <fieldset class="control-group overlay-group"><legend>Dark overlay</legend><div class="range-header"><span>Give the text a quieter background</span><output for="scrim" id="scrimValue">12%</output></div><input id="scrim" type="range" min="0" max="85" value="12" aria-label="Dark overlay opacity"><div class="range-endpoints"><span>None</span><span>Stronger</span></div></fieldset>
+        </form>
+
+        <div class="result-panel" id="resultPanel" data-status="loading">
+          <div class="result-heading"><span class="status-icon" id="statusIcon" aria-hidden="true">…</span><div><span class="result-label" id="resultLabel">Preparing the check</span><h2 id="resultTitle">Loading the background</h2></div></div>
+          <div class="ratio-block"><span>Lowest contrast in this area</span><strong id="minimumRatio">—</strong><span id="thresholdLabel">Target: 3:1 for large text</span></div>
+          <div class="result-explanation"><p id="resultDescription" role="status" aria-live="polite">The check will update as you make changes.</p><button type="button" id="overlaySuggestion" class="suggestion-button" hidden>Try a stronger overlay <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M3 10h13M11 5l5 5-5 5" stroke="currentColor" stroke-width="1.4"/></svg></button></div>
+        </div>
+      </section>
+
+      <section class="evidence-section" aria-labelledby="evidenceTitle">
+        <div class="evidence-intro"><span class="evidence-symbol" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M6 3h14l6 6v20H6zM20 3v7h6M11 16h10M11 21h10" stroke="currentColor" stroke-width="1.5"/></svg></span><div><h2 id="evidenceTitle">Take the evidence with you.</h2><p>Keep the background, checked area and result together.<br>Exports are a snapshot of this preview.</p></div></div><div class="export-buttons"><button type="button" id="exportHtml" class="primary-button" disabled>Save a visual report <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M10 2v11M6 9l4 4 4-4M3 14v3h14v-3" stroke="currentColor" stroke-width="1.4"/></svg></button><button type="button" id="exportJson" class="secondary-button" disabled>Export JSON</button></div><p id="exportMessage" class="export-message" role="status"></p>
+      </section>
+
+      <section class="method-section" id="method" aria-labelledby="methodTitle"><div><p class="method-kicker">What this check can tell you</p><h2 id="methodTitle">A closer look.<br>A careful conclusion.</h2></div><div class="method-copy"><p>One background color doesn’t describe a photograph. This playground checks every background pixel in the rectangle around the preview text and marks the lowest contrast.</p><p><strong>Below the target means “needs review.”</strong> The weakest pixel may fall between letters. Inspect the background directly behind the letters before deciding whether the text fails.</p><p><strong>Above the target means “quick check clear.”</strong> All sampled pixels meet the selected text threshold in this controlled preview. It does not certify an entire page or cover every accessibility requirement.</p><a href="https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html">Read the WCAG contrast guidance <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 15 15 5M5 5h10v10" stroke="currentColor" stroke-width="1.4"/></svg></a></div></section>
+    </main>
+    <footer><span>Made by <a href="https://github.com/builtbyhuy">Huy</a>. Open source. No account needed.</span><a href="https://github.com/builtbyhuy/contrast-evidence">Explore the project <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 15 15 5M5 5h10v10" stroke="currentColor" stroke-width="1.4"/></svg></a></footer>
+  </div>
+  <noscript><p class="no-script">This playground needs JavaScript to draw the background and check its pixels. Enable JavaScript to use the controls; the method explanation remains readable below.</p></noscript>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Capture behavior fixtures</title><style>
+body{margin:0;padding:24px;font-family:Arial,sans-serif;background:white}h2{font-size:24px;font-weight:700;margin:0;padding:16px;width:380px;box-sizing:border-box;line-height:1.3}section{margin-bottom:24px}.dark{background:#111;color:#fff}.light{background:#fff;color:#fff}.small{font-size:16px;font-weight:400}.card{position:relative;width:380px;background:linear-gradient(white,#eeeeee)}.card:before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.9)}.card h2{position:relative;z-index:1;color:white}.uncertain:after{content:"";position:absolute;inset:0;background:rgba(0,0,0,.7);pointer-events:none}.opacity{opacity:.5}.transformed{transform:translateX(1px)}.mix{background:#111;color:#fff}.overlap{position:relative;width:380px}.overlap .cover{position:absolute;inset:0;background:#888;pointer-events:none}.spacer{height:1800px;background:transparent}.clipped{height:20px;overflow:hidden}.clipped h2{margin:0}
+</style></head><body>
+<section><h2 id="clear" class="dark" style="letter-spacing: 0.1px; --fixture: kept;">Clear text</h2></section>
+<section><h2 id="review" class="light small">Needs letter-by-letter review</h2></section>
+<section class="card"><h2 id="pseudo">Opaque text over a preserved scrim</h2></section>
+<section class="card uncertain"><h2 id="uncertain-pseudo" style="z-index:auto">An uncertain overlay</h2></section>
+<section><h2 id="opacity" class="dark opacity">Translucent text layer</h2></section>
+<section class="opacity"><h2 id="ancestor-opacity" class="dark">Translucent ancestor</h2></section>
+<section><h2 id="mixed" class="mix">One <span style="color:red">different</span> word</h2></section>
+<section><h2 id="transform" class="dark transformed">Transformed text</h2></section>
+<section class="overlap"><h2 id="occluded" class="dark">Text under a painted overlay</h2><div class="cover"></div></section>
+<section class="clipped"><h2 id="clipped" class="dark">Clipped text</h2></section>
+<div class="spacer"></div><section><h2 id="below-fold" class="dark">Visible after scrolling</h2></section>
+</body></html>
