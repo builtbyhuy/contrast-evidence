@@ -4,7 +4,7 @@ Research observed on **9 October 2026**. The original contribution is a focused 
 
 ## The specific gap
 
-[Axe issue #4628](https://github.com/dequelabs/axe-core/issues/4628) requests contrast support for simple gradients. The current [color-contrast rule](https://github.com/dequelabs/axe-core/blob/develop/lib/rules/color-contrast.json) includes image, gradient and pseudo-content incomplete reasons. [Issue #5413](https://github.com/dequelabs/axe-core/issues/5413) concerns confusing incomplete reasons. These are reports and upstream implementation evidence; they are not defects independently reproduced in every axe version.
+[Axe issue #4628](https://github.com/dequelabs/axe-core/issues/4628) requests contrast support for simple gradients. The current [color-contrast check configuration](https://github.com/dequelabs/axe-core/blob/develop/lib/checks/color/color-contrast.json) includes image, gradient and pseudo-content incomplete reasons. [Issue #5413](https://github.com/dequelabs/axe-core/issues/5413) concerns confusing incomplete reasons. These are reports and upstream implementation evidence; they are not defects independently reproduced in every axe version.
 
 [W3C F83](https://www.w3.org/WAI/WCAG22/Techniques/failures/F83) describes a worst-background quickcheck for text over an image. If the quickcheck is insufficient, inspect the background behind individual letters before establishing a failure. [Understanding Contrast (Minimum)](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html) explains foreground colors, large text, thresholds and why antialiased screenshot text is unsuitable for this calculation. This tool extends the same conservative rectangle check to captured stationary gradients.
 
@@ -13,7 +13,7 @@ Research observed on **9 October 2026**. The original contribution is a focused 
 | Existing tool | Existing strength | This project's focus |
 | --- | --- | --- |
 | [axe with Playwright](https://playwright.dev/docs/accessibility-testing) | Broad automated accessibility checks | Evidence for a selected background contrast review; complements axe |
-| [Kontrasto](https://github.com/thibaudcolas/kontrasto) | Image analysis and text styling | DOM selector, computed CSS foreground, responsive capture and portable handoff |
+| [Kontrasto](https://github.com/thibaudcolas/kontrasto#usage-in-javascript) | Image analysis, text styling and DOM-aware image region selection | Retained original/background captures, responsive evidence and portable reviewer handoff |
 | [EA Fonttik](https://github.com/electronicarts/fonttik) | Image/video text detection and readability analysis | DOM-known text with no OCR or model API |
 | [Playwright Trace Viewer](https://playwright.dev/docs/trace-viewer) | Actions, DOM snapshots, screenshots and logs | Small contrast-specific report and foreground/background evidence |
 

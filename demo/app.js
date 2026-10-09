@@ -14,6 +14,7 @@ let uploadGeneration = 0;
 let loading = true;
 let fontDataPromise;
 let colorInputInvalid = false;
+let reportPreparing = false;
 
 function unsupported(message) {
   evidence = null;
@@ -174,7 +175,7 @@ function showResult(result) {
     ? `Every sampled background pixel in this text area meets ${threshold}:1 for the current text. Changing the crop, size or overlay can change the result. This is a local check, not a full accessibility review.`
     : `The lowest contrast in this text area is below ${threshold}:1. The marked spot may be between letters. Inspect behind the actual letters before deciding whether the text fails.`;
   $('overlaySuggestion').hidden = clear || state.scrim >= 70 || state.foreground !== '#ffffff';
-  $('exportHtml').disabled = false;
+  $('exportHtml').disabled = reportPreparing;
   $('exportJson').disabled = false;
 }
 
@@ -350,7 +351,10 @@ async function embeddedFont() {
   if (!fontDataPromise) fontDataPromise = fetch('assets/instrument-sans.ttf').then(response => {
     if (!response.ok) throw new Error('The report font could not be loaded. Check that the demo assets are available.');
     return response.blob();
-  }).then(blob => new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(blob); }));
+  }).then(blob => new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(blob); })).catch(error => {
+    fontDataPromise = undefined;
+    throw new Error('The report font could not be loaded. Try saving again, or export JSON instead.', { cause: error });
+  });
   return fontDataPromise;
 }
 
@@ -372,7 +376,11 @@ $('exportJson').addEventListener('click', () => {
   catch (error) { $('exportMessage').textContent = error.message; }
 });
 $('exportHtml').addEventListener('click', async () => {
+  if (reportPreparing) return;
   const button = $('exportHtml');
+  reportPreparing = true;
+  button.disabled = true;
+  button.setAttribute('aria-busy', 'true');
   try {
     render();
     const record = snapshot();
@@ -382,7 +390,7 @@ $('exportHtml').addEventListener('click', async () => {
     download(html, 'text/html', 'contrast-evidence.html');
     $('exportMessage').textContent = 'Visual report saved. Open it in any modern browser; it needs no connection.';
   } catch (error) { $('exportMessage').textContent = error.message || 'The report could not be created. Try exporting JSON.'; }
-  finally { button.disabled = !evidence; }
+  finally { reportPreparing = false; button.disabled = !evidence; button.removeAttribute('aria-busy'); }
 });
 
 new ResizeObserver(schedule).observe(stage.parentElement);
@@ -392,8 +400,10 @@ try {
   bundledImage = new Image();
   bundledImage.src = 'assets/repair-workshop.jpg';
   await Promise.all([bundledImage.decode(), document.fonts.load('700 52px "Instrument Sans"')]);
-  state.image = bundledImage;
-  state.source = bundledSource;
+  if (!state.image) {
+    state.image = bundledImage;
+    state.source = bundledSource;
+  }
 } catch (error) {
   $('uploadMessage').textContent = 'The example photo could not be loaded. Choose your own image or select Gradient.';
   console.error('Example assets unavailable:', error);

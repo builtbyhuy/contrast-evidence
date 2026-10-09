@@ -1,5 +1,7 @@
 # Validation of v0.1.0
 
+Historical baseline. [The v0.1.1 hardening record](hardening.md) documents subsequent regression fixes, the current test results and the narrower Chromium/shadow-root boundary.
+
 Observed **9 October 2026**. Tests ran against the actual source and rendered interface, not a design reference screenshot. This document records the checked scope; it does not establish adoption or whole-site WCAG conformance.
 
 ## Local execution

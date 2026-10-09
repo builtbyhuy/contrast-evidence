@@ -1,6 +1,6 @@
 {
   "name": "@builtbyhuy/contrast-evidence",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Reproducible contrast evidence for stationary text over images and gradients.",
   "type": "module",
   "license": "MIT",

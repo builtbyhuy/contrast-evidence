@@ -26,6 +26,7 @@ export interface CaptureResult {
   images: { original: string; background: string };
   method: 'bounding-box-quickcheck'; limitations: string[]; capturedAt: string;
 }
+/** Chromium Page with CDP support; await captures before reusing the same Page. */
 export function captureContrast(page: Page, options: CaptureOptions): Promise<CaptureResult>;
 export function parseColor(value: string): RGBA;
 export function luminance(rgb: RGB | RGBA): number;

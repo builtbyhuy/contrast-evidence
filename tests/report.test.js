@@ -94,6 +94,16 @@ test('background pixels are reanalyzed so a forged white-on-white clear result i
   assert.throws(() => report([capture({ pixelCount: 1 })]), /pixel count/);
 });
 
+test('worst-pixel metadata is derived from the PNG rather than trusted from the supplied record', () => {
+  const supplied = capture({ worstPixel: { x: 999999, y: -42, color: [255, 0, 0] } });
+  const result = report([supplied]);
+  assert.deepEqual(result.captures[0].worstPixel, { x: 0, y: 0, color: [255, 255, 255] });
+  assert.deepEqual(supplied.worstPixel, { x: 999999, y: -42, color: [255, 0, 0] });
+  result.captures[0].worstPixel = { x: 42, y: 999999, color: [255, 0, 0] };
+  const html = renderReport(result);
+  assert.doesNotMatch(html, /999999|rgb\(255, 0, 0\)/);
+});
+
 test('PNG dimensions are bounded before decoding and malformed original evidence is rejected', () => {
   const huge = Buffer.from(WHITE.split(',')[1], 'base64'); huge.writeUInt32BE(8001, 16);
   assert.throws(() => report([capture({ images: { original: WHITE, background: `data:image/png;base64,${huge.toString('base64')}` } })]), /8000 pixels/);
@@ -116,6 +126,25 @@ test('saved JSON and HTML retain the same evidence in a relocatable folder', asy
   } finally {
     const relative = path.relative(path.resolve(tmpdir()), path.resolve(temporary));
     assert.ok(relative && relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
+    await rm(temporary, { recursive: true, force: true });
+  }
+});
+
+test('saving a modified report reconciles JSON and HTML to the same PNG-derived evidence', async () => {
+  const temporary = await mkdtemp(path.join(tmpdir(), 'contrast-evidence-reconcile-'));
+  try {
+    const result = report();
+    result.captures[0].worstPixel = { x: 999999, y: -42, color: [255, 0, 0] };
+    result.summary = { status: 'needs-review', captureCount: 999, counts: { 'quickcheck-clear': 0, 'needs-review': 999, unsupported: 0 } };
+    const files = await writeReport(result, temporary);
+    const retained = JSON.parse(await readFile(files.json, 'utf8'));
+    assert.deepEqual(retained.captures[0].worstPixel, { x: 0, y: 0, color: [255, 255, 255] });
+    assert.equal(retained.summary.status, 'quickcheck-clear');
+    assert.equal(retained.summary.captureCount, 1);
+    assert.equal(await readFile(files.html, 'utf8'), renderReport(retained));
+  } finally {
+    const relative = path.relative(path.resolve(tmpdir()), path.resolve(temporary));
+    assert.ok(relative && !relative.startsWith('..') && !path.isAbsolute(relative));
     await rm(temporary, { recursive: true, force: true });
   }
 });

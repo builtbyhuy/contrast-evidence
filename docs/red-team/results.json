@@ -1,0 +1,271 @@
+{
+  "observedAt": "2026-10-09T07:03:11.363Z",
+  "browser": "154.0.4258.62",
+  "results": [
+    {
+      "name": "control",
+      "status": "quickcheck-clear",
+      "minimumRatio": 21,
+      "threshold": 3,
+      "foreground": "rgb(0, 0, 0)",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "falseClear": false
+    },
+    {
+      "name": "inconsistent-worst-pixel",
+      "accepted": true
+    },
+    {
+      "name": "first-line",
+      "status": "quickcheck-clear",
+      "minimumRatio": 21,
+      "threshold": 3,
+      "foreground": "rgb(0, 0, 0)",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "expectedForegroundContrast": 1.3582472461753565,
+      "falseClear": true
+    },
+    {
+      "name": "stacking-context",
+      "status": "quickcheck-clear",
+      "minimumRatio": 21,
+      "threshold": 3,
+      "foreground": "rgb(0, 0, 0)",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "expectedForegroundContrast": 1.6059285649300714,
+      "falseClear": true
+    },
+    {
+      "name": "shadow-overlay",
+      "status": "quickcheck-clear",
+      "minimumRatio": 21,
+      "threshold": 3,
+      "foreground": "rgb(0, 0, 0)",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "expectedForegroundContrast": 1.6059285649300714,
+      "falseClear": true
+    },
+    {
+      "name": "partial-selection",
+      "status": "quickcheck-clear",
+      "minimumRatio": 15.461102578439387,
+      "threshold": 3,
+      "foreground": "rgb(0, 0, 0)",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "falseClear": true
+    },
+    {
+      "name": "concurrent-capture",
+      "solo": {
+        "status": "quickcheck-clear",
+        "minimumRatio": 21,
+        "threshold": 3,
+        "foreground": "rgb(0, 0, 0)",
+        "reasons": [
+          "Every sampled background pixel meets the selected threshold for the computed foreground."
+        ]
+      },
+      "overlap": [
+        {
+          "status": "quickcheck-clear",
+          "minimumRatio": 21,
+          "threshold": 3,
+          "foreground": "rgb(0, 0, 0)",
+          "reasons": [
+            "Every sampled background pixel meets the selected threshold for the computed foreground."
+          ]
+        },
+        {
+          "status": "needs-review",
+          "minimumRatio": 1,
+          "threshold": 3,
+          "foreground": "rgb(0, 0, 0)",
+          "reasons": [
+            "At least one background pixel is below the selected threshold; inspect the pixels behind individual letters."
+          ]
+        }
+      ],
+      "trace": [
+        "A screenshot 1 started",
+        "B screenshot 1 started",
+        "A screenshot 1 taken",
+        "B screenshot 1 taken",
+        "A screenshot 2 started",
+        "B screenshot 2 started",
+        "A screenshot 2 taken",
+        "A screenshot 3 started",
+        "A screenshot 3 taken",
+        "B screenshot 2 taken",
+        "B screenshot 3 started",
+        "B screenshot 3 taken"
+      ],
+      "styleAfter": null
+    },
+    {
+      "name": "startup-upload",
+      "beforeCredit": "my-campaign-blue.png · loaded locally. No upload to a server.",
+      "afterCredit": "Photo: Rehook Bike / Pexels. Sample text is for demonstration.",
+      "uploadMessage": "my-campaign-blue.png loaded. It stays in this browser.",
+      "exportedSource": {
+        "name": "repair-workshop.jpg",
+        "kind": "bundled-photo",
+        "creator": "Rehook Bike",
+        "url": "https://www.pexels.com/photo/close-up-of-fixing-a-bicycle-10263877/",
+        "license": "Pexels License",
+        "licenseUrl": "https://www.pexels.com/license/"
+      }
+    },
+    {
+      "name": "font-retry",
+      "firstError": "Failed to fetch",
+      "retryError": "Failed to fetch",
+      "fontRequests": 1
+    },
+    {
+      "name": "duplicate-export",
+      "busyMessage": "Preparing your self-contained report…",
+      "enabledWhileBusy": true,
+      "downloadCount": 2,
+      "reportTexts": [
+        "Good design\nstands up to\na closer look.",
+        "A second report while the first is \npreparing."
+      ]
+    }
+  ],
+  "baselineCommit": "070c6adb9f386280b60589e0e94b939bd4e3f890",
+  "consumerInstall": {
+    "pngjs": "7.0.0",
+    "command": "npm install github:builtbyhuy/contrast-evidence --ignore-scripts --no-audit --no-fund",
+    "version": "0.1.0",
+    "resolved": "git+ssh://git@github.com/builtbyhuy/contrast-evidence.git#070c6adb9f386280b60589e0e94b939bd4e3f890",
+    "playwright": "1.62.1"
+  },
+  "workerCaptureVariants": [
+    {
+      "status": "quickcheck-clear",
+      "name": "none",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "threshold": 3,
+      "minimumRatio": 21
+    },
+    {
+      "status": "quickcheck-clear",
+      "name": "isolation:isolate",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "threshold": 3,
+      "minimumRatio": 21
+    },
+    {
+      "status": "quickcheck-clear",
+      "name": "contain:paint",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "threshold": 3,
+      "minimumRatio": 21
+    },
+    {
+      "status": "quickcheck-clear",
+      "name": "will-change:transform",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "threshold": 3,
+      "minimumRatio": 21
+    },
+    {
+      "status": "quickcheck-clear",
+      "name": "position:sticky;top:0",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "threshold": 3,
+      "minimumRatio": 21
+    },
+    {
+      "status": "quickcheck-clear",
+      "name": "position:fixed;top:0",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "threshold": 3,
+      "minimumRatio": 21
+    },
+    {
+      "status": "unsupported",
+      "name": "position:relative;z-index:0",
+      "reasons": [
+        "A painted pseudo-element is not provably behind the selected text."
+      ],
+      "threshold": 3,
+      "minimumRatio": null
+    },
+    {
+      "status": "unsupported",
+      "name": "opacity:.999",
+      "reasons": [
+        "Element or ancestor opacity changes the foreground paint."
+      ],
+      "threshold": 3,
+      "minimumRatio": null
+    },
+    {
+      "status": "quickcheck-clear",
+      "name": "selection-part",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "threshold": 3,
+      "minimumRatio": 15.461102578439387
+    },
+    {
+      "status": "quickcheck-clear",
+      "name": "highlight-part",
+      "reasons": [
+        "Every sampled background pixel meets the selected threshold for the computed foreground."
+      ],
+      "threshold": 3,
+      "minimumRatio": 15.461102578439387
+    }
+  ],
+  "workerLiveVerification": {
+    "before": {
+      "credit": "user-white.png · loaded locally. No upload to a server.",
+      "upload": "user-white.png loaded. It stays in this browser.",
+      "status": "loading"
+    },
+    "after": {
+      "credit": "Photo: Rehook Bike / Pexels. Sample text is for demonstration.",
+      "upload": "user-white.png loaded. It stays in this browser.",
+      "status": "quickcheck-clear"
+    },
+    "exportedSource": {
+      "name": "repair-workshop.jpg",
+      "kind": "bundled-photo",
+      "creator": "Rehook Bike",
+      "url": "https://www.pexels.com/photo/close-up-of-fixing-a-bicycle-10263877/",
+      "license": "Pexels License",
+      "licenseUrl": "https://www.pexels.com/license/"
+    },
+    "sourceMatches": true,
+    "appSha256": "9e589ac5d377533df0bdefe932696598530e7992a66a17841e8c9041cc551dcd",
+    "liveRetry": {
+      "requests": 1,
+      "error": "Failed to fetch"
+    }
+  }
+}

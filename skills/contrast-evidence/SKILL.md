@@ -17,9 +17,9 @@ npx playwright install chromium
 node src/cli.js --url http://localhost:3000 --selector '.hero h1' --viewport 1440x900 --viewport 390x844 --out ./evidence
 ```
 
-Reuse an existing compatible browser when available (`--browser msedge` or `--browser chrome`); browser installation is explicit. For an authenticated or already prepared page, import `captureContrast` and supply the existing Playwright page. Follow the user's page and viewport scope.
+Reuse an existing compatible browser when available (`--browser msedge` or `--browser chrome`); browser installation is explicit. Capture requires a Chromium Playwright Page with CDP support. For an authenticated or already prepared page, import `captureContrast` and supply that page. Await each capture before starting another on the same Page. Follow the user's page and viewport scope.
 
-Read `report.json` and inspect `index.html`, including the original and background-only crops. Check that the text, crop and viewport match the intended element. The background capture suppresses text paint while preserving geometry; uncertain effects produce `unsupported`.
+Read `report.json` and inspect `index.html`, including the original and background-only crops. Both mark the same weakest background pixel and share a 2× zoom control. Check that the text, crop and viewport match the intended element. The background capture suppresses text paint while preserving geometry; uncertain effects produce `unsupported`.
 
 ## Interpret results correctly
 
@@ -28,6 +28,8 @@ Read `report.json` and inspect `index.html`, including the original and backgrou
 - `unsupported`: capture or rendering uncertainty prevents a reliable conclusion. Read the reasons; do not treat missing evidence as clear.
 
 Do not round a ratio before comparing it with a threshold. Do not sample antialiased text pixels as the foreground color. Stationary, opaque, single-color text is the supported scope. Blends, filters, shadows, transformed or occluded text and dynamic backgrounds require another method or manual review.
+
+Text-pseudo foreground/font differences and intersecting active selection/custom highlights are unsupported. Any author-created shadow root on the page, open or closed, is outside the capture scope; unrelated author web components also cause refusal. Do not reinterpret a refusal as a clear result or change a page only to silence it.
 
 After changing text/background styling, capture the same selector and viewports again. Report what the actual new evidence shows. A slider value, successful screenshot or passing general accessibility scan alone does not prove this contrast check.
 

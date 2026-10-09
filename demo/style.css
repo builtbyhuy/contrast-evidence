@@ -1051,7 +1051,7 @@ footer svg {
     gap:18px;
     font-size:12px
   }
-  .site-header nav>a:first-child {
+  .site-header nav>a:not(.source-link) {
     display:none
   }
   .intro {
@@ -1455,4 +1455,120 @@ textarea {
 }
 .photo-credit {
   overflow-wrap:anywhere
+}
+.page-check-entry {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  margin-top:18px;
+  color:var(--blue);
+  font-size:13px;
+  font-weight:600
+}
+.page-check-section {
+  display:grid;
+  grid-template-columns:1fr 1.5fr;
+  gap:80px;
+  border-top:1px solid var(--line);
+  padding:48px 0;
+  scroll-margin-top:25px
+}
+.page-check-section h2 {
+  font-size:36px;
+  line-height:1.12;
+  letter-spacing:-1.3px;
+  font-weight:600;
+  margin:0
+}
+.page-check-lead {
+  color:#53636d;
+  font-size:14px;
+  line-height:1.8;
+  margin:20px 0
+}
+.page-check-example,.page-check-walkthrough a {
+  color:var(--blue);
+  font-size:13px;
+  font-weight:600
+}
+.page-check-content {
+  min-width:0;
+  font-size:13px;
+  line-height:1.8
+}
+.page-check-content ol {
+  margin:0;
+  padding-left:22px
+}
+.page-check-content pre {
+  margin:14px 0 24px;
+  padding:16px 18px;
+  border:1px solid #d5dcde;
+  border-radius:7px;
+  background:#fff;
+  color:#253842;
+  font-size:12px;
+  line-height:1.7;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere
+}
+.page-check-content code {
+  font-family:Consolas,"Liberation Mono",monospace;
+  font-size:.94em;
+  overflow-wrap:anywhere
+}
+.page-check-content pre code {
+  font-size:inherit
+}
+.page-check-help {
+  color:#53636d;
+  margin:20px 0
+}
+.page-check-content details {
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:14px 0
+}
+.page-check-content summary {
+  cursor:pointer;
+  font-weight:600
+}
+.page-check-content summary:focus-visible {
+  outline:3px solid var(--blue);
+  outline-offset:4px
+}
+.page-check-content details p {
+  margin:16px 0
+}
+.page-check-content details pre {
+  margin-bottom:0
+}
+.page-check-walkthrough {
+  margin:22px 0 0
+}
+@media(max-width:850px) {
+  .page-check-section {
+    grid-template-columns:1fr 1.4fr;
+    gap:35px
+  }
+}
+@media(max-width:680px) {
+  .page-check-section {
+    display:block;
+    padding:36px 0
+  }
+  .page-check-content {
+    margin-top:26px;
+    font-size:12px
+  }
+  .page-check-lead {
+    font-size:12px
+  }
+  .page-check-content pre {
+    font-size:11px;
+    padding:14px
+  }
+  .page-check-entry,.page-check-example,.page-check-walkthrough a {
+    font-size:12px
+  }
 }

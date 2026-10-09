@@ -6,7 +6,7 @@
 
 Capture the actual element, its background without text, and the lowest contrast in its rectangle. Keep the evidence in a portable report. Built for frontend developers and accessibility reviewers resolving contrast checks over photos and gradients.
 
-[Try the playground](https://builtbyhuy.github.io/contrast-evidence/demo/) · [Method and limits](#what-the-result-means) · [Agent skill](skills/contrast-evidence/SKILL.md)
+[Try the playground](https://builtbyhuy.github.io/contrast-evidence/demo/) · [Check a real page](docs/walkthrough.md) · [Method and limits](#what-the-result-means) · [Agent skill](skills/contrast-evidence/SKILL.md)
 
 The playground runs entirely in your browser. Change the image crop, text color and dark overlay; locate the weakest background pixel; export an HTML report or JSON. Uploaded images stay on your device.
 
@@ -25,7 +25,7 @@ node src/cli.js --url http://localhost:3000 --selector '.hero h1' \
   --viewport 1440x900 --viewport 390x844 --out ./evidence
 ```
 
-Open `evidence/index.html`. The same captures and full numeric values are in `evidence/report.json`. To use an existing browser, add `--browser msedge` or `--browser chrome`. The tool never silently downloads or falls back to another browser.
+Open `evidence/index.html`. The report marks the same weakest pixel in the original and background crops, with a shared 2× zoom control. The same captures and full numeric values are in `evidence/report.json`. To use an existing browser, add `--browser msedge` or `--browser chrome`. The tool never silently downloads or falls back to another browser.
 
 For pages that need authentication or preparation, supply your own Playwright page:
 
@@ -46,6 +46,12 @@ This package is available from the repository, not yet published to npm. In the 
 
 For an AI assistant, install the folder `skills/contrast-evidence` in its skill directory (Codex: `~/.codex/skills/contrast-evidence`). The skill guides capture and interpretation; install the tool separately as above.
 
+## A complete worked example
+
+[Open the photo hero](https://builtbyhuy.github.io/contrast-evidence/examples/hero/) and [the adjusted version](https://builtbyhuy.github.io/contrast-evidence/examples/hero/?fixed=1). The narrow heading's rectangle measured **1.46:1 / needs-review**, then **7.60:1 / quickcheck-clear** after changing only the overlay. The selected threshold is 3:1. These are observed captures of this example; a review flag alone does not establish failure.
+
+The [walkthrough](docs/walkthrough.md) includes the running page, both viewport captures, the actual CSS adjustment and retained before/after reports. It is an illustrative review workflow, not evidence of customer adoption or saved review time.
+
 ## What the result means
 
 | Status | Interpretation | CLI exit |
@@ -62,9 +68,9 @@ The method follows the conservative quickcheck described in [W3C F83](https://ww
 
 ## Supported scope
 
-Stationary, visible, opaque, single-color text with text/line-break children. The tool captures original and background-only pixels while preserving layout and restoring the element's exact inline style. It scrolls the element into view and records the viewport and bounds.
+Capture uses a **Chromium Playwright Page with CDP support** (including installed Chrome/Edge). Stationary, visible, opaque, single-color text with text/line-break children is supported. The tool captures original and background-only pixels while preserving layout and restoring the element's exact inline style. It scrolls the element into view and records the viewport and bounds. Await a capture before starting another on the same Page; overlapping calls return `unsupported` without disturbing the active capture.
 
-Effects such as translucent text, mixed styled descendants, colored emoji, italic text, shadows, filters, blending, unsafe pseudo-element overlays, transformations, clipping and occlusion are treated conservatively. Shadow-root targets are outside the supported scope. A tight line-height or text extending outside its element rectangle can be unsupported; capture a suitable text leaf or inspect manually. If masking text changes another rendering property, the capture is rejected. Dynamic backgrounds are outside the supported scope. Capture at a representative settled state and inspect the retained crops. This is evidence for review, not a complete accessibility audit.
+Effects such as translucent text, mixed styled descendants, colored emoji, italic text, shadows, filters, blending, unsafe pseudo-element overlays, transformations, clipping and occlusion are treated conservatively. Text-pseudo foreground/font differences and active selections or custom highlights intersecting the target are unsupported. Pages containing any author-created shadow root, open or closed, are unsupported; browser-owned control roots elsewhere do not trigger this refusal. This conservative boundary also excludes unrelated author web components. A tight line-height or text extending outside its element rectangle can be unsupported; capture a suitable text leaf or inspect manually. If masking text changes another rendering property, the capture is rejected. Dynamic backgrounds are outside the supported scope. Capture at a representative settled state and inspect the retained crops. This is evidence for review, not a complete accessibility audit.
 
 ## Develop and contribute
 
@@ -79,6 +85,6 @@ Open `http://127.0.0.1:4173/demo/`. `CONTRAST_BROWSER=msedge` can select an exis
 
 Useful contributions: a reproducible capture case, a documented unsupported rendering effect, or clearer evidence presentation. Include the selector, viewport, browser version, original/background crops and expected behavior. Please use a minimal public fixture; reports can contain private page text and images.
 
-[Why this tool and existing alternatives](docs/research.md) · [Validation](docs/validation.md) · [Asset credits](NOTICE.md)
+[Why this tool and existing alternatives](docs/research.md) · [Validation](docs/validation.md) · [v0.1.1 hardening](docs/hardening.md) · [Asset credits](NOTICE.md)
 
 Original code: MIT. Photo and font retain their own licenses. Built by [Huy Ho](https://github.com/builtbyhuy).

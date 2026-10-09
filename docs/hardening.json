@@ -1,0 +1,123 @@
+{
+  "integrated": {
+    "checkedAt": "2026-10-09T07:19:45.926Z",
+    "browserVersion": "154.0.8037.98",
+    "channel": "chrome",
+    "facts": [
+      {
+        "part": "entry flow",
+        "width": 1440,
+        "noPageErrors": true,
+        "noOverflow": true,
+        "walkthrough": "https://github.com/builtbyhuy/contrast-evidence/blob/main/docs/walkthrough.md"
+      },
+      {
+        "part": "entry flow",
+        "width": 390,
+        "noPageErrors": true,
+        "noOverflow": true,
+        "walkthrough": "https://github.com/builtbyhuy/contrast-evidence/blob/main/docs/walkthrough.md"
+      },
+      {
+        "part": "entry flow",
+        "width": 320,
+        "noPageErrors": true,
+        "noOverflow": true,
+        "walkthrough": "https://github.com/builtbyhuy/contrast-evidence/blob/main/docs/walkthrough.md"
+      },
+      {
+        "part": "offline report",
+        "state": "before",
+        "width": 1440,
+        "markerCount": 4,
+        "synchronizedZoom": true,
+        "numericAgreement": true,
+        "noHttpRequests": true,
+        "noPageErrors": true,
+        "noOverflow": true
+      },
+      {
+        "part": "offline report",
+        "state": "before",
+        "width": 390,
+        "markerCount": 4,
+        "synchronizedZoom": true,
+        "numericAgreement": true,
+        "noHttpRequests": true,
+        "noPageErrors": true,
+        "noOverflow": true
+      },
+      {
+        "part": "offline report",
+        "state": "after",
+        "width": 1440,
+        "markerCount": 4,
+        "synchronizedZoom": true,
+        "numericAgreement": true,
+        "noHttpRequests": true,
+        "noPageErrors": true,
+        "noOverflow": true
+      },
+      {
+        "part": "offline report",
+        "state": "after",
+        "width": 390,
+        "markerCount": 4,
+        "synchronizedZoom": true,
+        "numericAgreement": true,
+        "noHttpRequests": true,
+        "noPageErrors": true,
+        "noOverflow": true
+      }
+    ]
+  },
+  "release": "0.1.1",
+  "example": {
+    "unchangedSampleCounts": [
+      89640,
+      31408
+    ],
+    "threshold": 3,
+    "before": {
+      "cliExit": 1,
+      "desktop": 7.15238257598946,
+      "narrow": 1.4574209811667906
+    },
+    "after": {
+      "cliExit": 0,
+      "desktop": 8.232778443506616,
+      "narrow": 7.596001647536648
+    },
+    "observedBrowser": "Chrome154.0.8037.98"
+  },
+  "observedDate": "2026-10-09",
+  "runtime": {
+    "node": "24.19.0",
+    "playwright": "1.62.1",
+    "earlierBrowser": "Edge154.0.4258.62",
+    "finalBrowser": "Chrome154.0.8037.98"
+  },
+  "tdd": {
+    "playground": {
+      "widths": [
+        1440,
+        768,
+        390,
+        320
+      ],
+      "passed": 17,
+      "adjustableSpecimenExcluded": true,
+      "axeInterfaceViolations": 0
+    },
+    "captureFailingCases": 17,
+    "finalSuite": {
+      "failed": 0,
+      "passed": 67
+    },
+    "reportFailingCases": 4,
+    "demoFailingCases": 3,
+    "captureSupportedControls": 3,
+    "newTests": 27
+  },
+  "baselineCommit": "070c6adb9f386280b60589e0e94b939bd4e3f890"
+}

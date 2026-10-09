@@ -7,19 +7,56 @@ const LIMITATIONS = Object.freeze([
   'The entire pixel rectangle is checked, including spaces and padding; review may still find sufficient contrast behind individual letters.',
   'The caller must ensure image backgrounds are stationary; animated image formats cannot be reliably identified from the DOM.',
   'Only monochrome text with normal font style is supported; detected emoji, italic and oblique text are rejected.',
-  'Shadow-root text and uncertain paint extending from other elements are outside the supported capture scope.',
+  'Capture requires Chromium shadow-tree inspection; pages with author shadow roots (open or closed) and uncertain external paint are unsupported.',
   'This tool does not certify accessibility or inspect other interaction states.'
 ]);
 
 // Give style changes two paint opportunities without weakening pixel identity.
 const settlePaint = page => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 
+// A Page has one rendered scene. Overlapping masks cannot own independent
+// background snapshots, even when callers select different elements.
+const activeCaptures = new WeakSet();
+
+async function hasAuthorShadowRoot(page) {
+  // DOM APIs cannot detect closed roots. Chromium's read-only DOM snapshot can,
+  // and distinguishes browser-owned control roots from author-created roots.
+  const session = await page.context().newCDPSession(page);
+  try {
+    const { root } = await session.send('DOM.getDocument', { depth: -1, pierce: true });
+    const pending = [root];
+    while (pending.length) {
+      const node = pending.pop();
+      if (node.shadowRootType && node.shadowRootType !== 'user-agent') return true;
+      pending.push(...(node.children ?? []), ...(node.shadowRoots ?? []));
+      if (node.contentDocument) pending.push(node.contentDocument);
+      if (node.templateContent) pending.push(node.templateContent);
+    }
+    return false;
+  } finally { await session.detach().catch(() => {}); }
+}
+
 // A temporary style attribute can itself match author CSS, including :has().
 // Record the relevant rendered scene, rather than assuming a mask only removes
 // text. Empty target pseudos inherit the three intentionally suppressed paints;
 // their background, content and every other computed property still participate.
-function paintState(element) {
+function paintState(element, expected) {
   const rect = element.getBoundingClientRect();
+  if (expected) {
+    // Metadata can become stale while fonts, inspection and paint settle. Audit
+    // it in this same synchronous observation of the first rendered scene.
+    const css = getComputedStyle(element);
+    const foreground = css.webkitTextFillColor || css.color;
+    const geometry = { x: rect.x + scrollX, y: rect.y + scrollY, width: rect.width, height: rect.height };
+    const clip = { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    if (foreground !== expected.foreground || Number.parseFloat(css.fontSize) !== expected.font.sizePx ||
+      (Number.parseInt(css.fontWeight, 10) || 400) !== expected.font.weight || (element.innerText ?? element.textContent).trim() !== expected.text ||
+      element.getAttribute('style') !== expected.inlineStyle ||
+      Object.keys(geometry).some(key => Math.abs(geometry[key] - expected.geometry[key]) > 0.01) ||
+      Object.keys(clip).some(key => Math.abs(clip[key] - expected.clip[key]) > 0.01)) {
+      throw new Error('Foreground, font, text, geometry or inline style changed before the original paint observation.');
+    }
+  }
   const ancestors = new Set(); for (let node = element; node; node = node.parentElement) ancestors.add(node);
   // Chromium also exposes the text-decoration shorthand with its color folded
   // in. Its line/style/thickness longhands remain checked independently.
@@ -44,7 +81,8 @@ function paintState(element) {
   });
 }
 
-/** Capture an already-open Playwright Page. This module never launches a browser. */
+/** Capture an already-open Chromium Playwright Page; concurrent calls on the
+ * same Page return unsupported. This module never launches a browser. */
 export async function captureContrast(page, { selector, threshold } = {}) {
   const result = {
     status: 'unsupported', selector: typeof selector === 'string' ? selector : '', text: '',
@@ -66,6 +104,8 @@ export async function captureContrast(page, { selector, threshold } = {}) {
     result.threshold = 4.5;
     return unsupported('Threshold must be a finite number between 1 and 21.');
   }
+  if (activeCaptures.has(page)) return unsupported('Another contrast capture already owns this Page; await it before capturing again.');
+  activeCaptures.add(page);
   try {
     result.pageUrl = page.url(); result.browserVersion = page.context().browser()?.version() ?? 'unknown';
     const environment = await page.evaluate(() => ({ width: innerWidth, height: innerHeight, deviceScaleFactor: devicePixelRatio, userAgent: navigator.userAgent }));
@@ -84,7 +124,7 @@ export async function captureContrast(page, { selector, threshold } = {}) {
       const reasons = [];
       const rect = element.getBoundingClientRect();
       const style = getComputedStyle(element);
-      const text = element.textContent.trim();
+      const text = (element.innerText ?? element.textContent).trim();
       const foreground = style.webkitTextFillColor || style.color;
       const sizePx = Number.parseFloat(style.fontSize);
       const weight = Number.parseInt(style.fontWeight, 10) || 400;
@@ -96,6 +136,12 @@ export async function captureContrast(page, { selector, threshold } = {}) {
       const activeZ = node => {
         const css = getComputedStyle(node), parentDisplay = node.parentElement ? getComputedStyle(node.parentElement).display : '';
         if (css.zIndex !== 'auto' && (css.position !== 'static' || /flex|grid/.test(parentDisplay))) return Number(css.zIndex);
+        // A child z-index stays inside every stacking context, including those
+        // created without an explicit z-index. Treat those as zero-level layers.
+        if (['fixed', 'sticky'].includes(css.position) || css.isolation === 'isolate' || /\b(layout|paint|strict|content)\b/.test(css.contain) ||
+          (css.containerType && css.containerType !== 'normal') || Number(css.opacity) !== 1 || css.mixBlendMode !== 'normal' ||
+          [css.transform, css.perspective, css.filter, css.backdropFilter, css.clipPath, css.maskImage, css.translate, css.rotate, css.scale].some(value => value && value !== 'none') ||
+          /\b(transform|opacity|perspective|filter|backdrop-filter|mix-blend-mode|clip-path|mask|mask-image)\b/.test(css.willChange)) return 0;
         return null;
       };
       const layer = (owner, node) => {
@@ -141,6 +187,26 @@ export async function captureContrast(page, { selector, threshold } = {}) {
       if (['INPUT', 'TEXTAREA', 'SELECT', 'SVG', 'CANVAS', 'IFRAME', 'VIDEO'].includes(element.tagName)) reasons.push('Native controls and non-HTML text are outside the supported capture scope.');
       if ([...element.children].some(child => child.tagName !== 'BR')) reasons.push('Descendant elements or mixed styled text need separate leaf-text captures.');
       const range = document.createRange(); range.selectNodeContents(element);
+      for (const pseudo of ['::first-line', '::first-letter']) {
+        const ps = getComputedStyle(element, pseudo);
+        const properties = ['color', 'webkitTextFillColor', 'fontSize', 'fontWeight', 'fontStyle', 'textShadow', 'webkitTextStrokeWidth'];
+        if (properties.some(name => ps[name] !== style[name])) reasons.push('Text pseudo-elements change the foreground or font and need separate review.');
+      }
+      const intersectsText = selected => {
+        if (selected.collapsed) return false;
+        try {
+          // Highlight accepts both live Range and immutable StaticRange. Compare
+          // their current boundaries without assuming either exposes methods.
+          const current = document.createRange();
+          current.setStart(selected.startContainer, selected.startOffset);
+          current.setEnd(selected.endContainer, selected.endOffset);
+          return current.compareBoundaryPoints(Range.END_TO_START, range) < 0 && current.compareBoundaryPoints(Range.START_TO_END, range) > 0;
+        }
+        catch { return false; }
+      };
+      const selection = getSelection();
+      if (selection && Array.from({ length: selection.rangeCount }, (_, index) => selection.getRangeAt(index)).some(intersectsText)) reasons.push('Active selection intersects the text and changes its foreground paint.');
+      if (globalThis.CSS?.highlights && [...CSS.highlights.values()].some(highlight => [...highlight].some(intersectsText))) reasons.push('An active custom highlight intersects the text and changes its foreground paint.');
       if ([...range.getClientRects()].some(r => r.left < rect.left - 0.5 || r.right > rect.right + 0.5 || r.top < rect.top - 0.5 || r.bottom > rect.bottom + 0.5)) reasons.push('Text extends outside the selected element rectangle.');
       if (/hidden|clip|scroll|auto/.test(`${style.overflowX} ${style.overflowY}`) && (element.scrollWidth > element.clientWidth || element.scrollHeight > element.clientHeight)) reasons.push('The selected element clips or scrolls its own text.');
       if (document.readyState !== 'complete' || document.fonts.status !== 'loaded') reasons.push('The document or fonts have not finished loading.');
@@ -206,6 +272,9 @@ export async function captureContrast(page, { selector, threshold } = {}) {
     result.font = metadata.font; result.bounds = metadata.bounds;
     result.threshold = threshold ?? textThreshold(metadata.font.sizePx, metadata.font.weight);
     if (metadata.reasons.length) { result.reasons.push(...metadata.reasons); return result; }
+    try {
+      if (await hasAuthorShadowRoot(page)) return unsupported('Shadow-root paint is outside this capture scope; the page contains an author shadow root (open or closed).');
+    } catch { return unsupported('Reliable shadow-tree inspection requires a Chromium Page with CDP support.'); }
     let color;
     try { color = parseColor(metadata.foreground); }
     catch { return unsupported('The computed foreground is not a supported sRGB color.'); }
@@ -213,7 +282,7 @@ export async function captureContrast(page, { selector, threshold } = {}) {
     savedStyle = metadata.inlineStyle;
     const options = { clip: metadata.clip, scale: 'css', caret: 'hide', animations: 'disabled', type: 'png' };
     await settlePaint(page);
-    const originalPaint = await target.evaluate(paintState);
+    const originalPaint = await target.evaluate(paintState, metadata);
     const original = await page.screenshot(options);
     result.images.original = `data:image/png;base64,${original.toString('base64')}`;
     touched = true;
@@ -251,5 +320,6 @@ export async function captureContrast(page, { selector, threshold } = {}) {
       try { await target.evaluate((element, saved) => { if (saved === null) element.removeAttribute('style'); else element.setAttribute('style', saved); }, savedStyle); }
       catch { result.status = 'unsupported'; result.reasons.push('The element detached before its original inline style could be restored.'); }
     }
+    activeCaptures.delete(page);
   }
 }

@@ -50,7 +50,7 @@ function colorText(value) {
 
 function validateCapture(capture) {
   if (!capture || !Object.hasOwn(LABELS, capture.status)) throw new TypeError('Unknown capture status.');
-  if (capture.status === 'unsupported') return;
+  if (capture.status === 'unsupported') return capture;
   if (!finite(capture.minimumRatio) || capture.minimumRatio < 1 || capture.minimumRatio > 21 || !finite(capture.threshold) || capture.threshold < 1 || capture.threshold > 21) throw new TypeError('A supported capture requires finite contrast and threshold values from 1 to 21.');
   const expected = capture.minimumRatio >= capture.threshold ? 'quickcheck-clear' : 'needs-review';
   if (capture.status !== expected) throw new TypeError('Capture status disagrees with the unrounded contrast comparison.');
@@ -66,11 +66,12 @@ function validateCapture(capture) {
   if (capture.sampleSize && (capture.sampleSize.width !== background.width || capture.sampleSize.height !== background.height)) throw new TypeError('Reported sample size disagrees with the PNG evidence.');
   if (capture.pixelCount !== undefined && capture.pixelCount !== background.width * background.height) throw new TypeError('Reported pixel count disagrees with the PNG evidence.');
   if (capture.method !== 'bounding-box-quickcheck') throw new TypeError('Unknown measurement method.');
+  return { ...capture, worstPixel: analysis.worstPixel, sampleSize: { width: background.width, height: background.height }, pixelCount: analysis.pixelCount };
 }
 
 export function createReport(captures, { url, selector, createdAt = new Date().toISOString() } = {}) {
   if (!Array.isArray(captures) || captures.length === 0) throw new TypeError('At least one capture is required.');
-  captures.forEach(validateCapture);
+  captures = captures.map(validateCapture);
   const counts = Object.fromEntries(Object.keys(LABELS).map(status => [status, captures.filter(capture => capture.status === status).length]));
   const status = counts.unsupported ? 'unsupported' : counts['needs-review'] ? 'needs-review' : 'quickcheck-clear';
   return {
@@ -90,10 +91,15 @@ export function createReport(captures, { url, selector, createdAt = new Date().t
   };
 }
 
-function renderImage(value, title, alternative) {
+function renderImage(value, title, alternative, inspection) {
   const source = pngDataUrl(value);
+  const size = inspection?.sampleSize, worst = inspection?.worstPixel;
+  const marked = size && worst;
+  const content = marked
+    ? `<div class="pixel-frame" style="--raster-width:${size.width}px;--fit-width:${340 * size.width / size.height}px"><img src="${source}" alt="${escapeHtml(alternative)}"><span class="worst-marker" aria-hidden="true" style="left:${(worst.x + 0.5) / size.width * 100}%;top:${(worst.y + 0.5) / size.height * 100}%"></span></div>`
+    : `<img src="${source}" alt="${escapeHtml(alternative)}">`;
   return `<figure><figcaption>${escapeHtml(title)}</figcaption>${source
-    ? `<div class="crop"><img src="${source}" alt="${escapeHtml(alternative)}"></div>`
+    ? `<div class="crop${marked ? ' marked-crop' : ''}">${content}</div>`
     : '<div class="missing">No image captured</div>'}</figure>`;
 }
 
@@ -104,6 +110,7 @@ function renderCapture(capture, index) {
   const viewport = capture.viewport ?? {};
   const images = capture.images ?? {};
   const worst = capture.worstPixel;
+  const inspection = capture.status === 'unsupported' ? null : capture;
   const reasons = Array.isArray(capture.reasons) ? capture.reasons : [];
   const limitations = Array.isArray(capture.limitations) ? capture.limitations : [];
   const exactRatio = finite(capture.minimumRatio) ? `<p class="precision">Exact minimum: <code>${escapeHtml(capture.minimumRatio)}</code>. Decisions use this unrounded value.</p>` : '';
@@ -114,7 +121,8 @@ function renderCapture(capture, index) {
     <header class="capture-heading"><div><p class="eyebrow">Capture ${String(index + 1).padStart(2, '0')}</p><h2>${escapeHtml(coordinate(viewport.width))} × ${escapeHtml(coordinate(viewport.height))}<span> CSS pixels</span></h2></div><span class="badge ${capture.status}">${label}</span></header>
     <div class="measurement"><div><span class="muted">Lowest sampled contrast</span><p class="ratio">${escapeHtml(ratio(capture.minimumRatio))}</p>${exactRatio}</div><div class="threshold"><span class="muted">Quickcheck threshold</span><strong>${escapeHtml(ratio(capture.threshold))}</strong></div></div>
     <p class="sample-text">${escapeHtml(capture.text || 'No text captured.')}</p>
-    <div class="images">${renderImage(images.original, 'Original element crop', 'Captured original text element')}${renderImage(images.background, 'Background with text hidden', 'Background pixels used by the bounding-box quickcheck')}</div>
+    ${inspection ? `<p class="muted">The ring marks the same weakest background pixel in both crops. It may sit between letters; inspect the original text before deciding whether contrast fails.</p><input class="zoom-crops" type="checkbox" id="zoom-${index + 1}"><label class="zoom-label" for="zoom-${index + 1}">Enlarge both crops to 2×</label>` : ''}
+    <div class="images">${renderImage(images.original, 'Original element crop', 'Captured original text element', inspection)}${renderImage(images.background, 'Background with text hidden', 'Background pixels used by the bounding-box quickcheck', inspection)}</div>
     ${pixel}
     <details><summary>Capture details</summary><dl class="facts"><div><dt>Selector</dt><dd><code>${escapeHtml(capture.selector)}</code></dd></div><div><dt>Computed foreground</dt><dd><code>${escapeHtml(colorText(capture.foreground))}</code></dd></div><div><dt>Font</dt><dd>${escapeHtml(coordinate(font.sizePx))} px · weight ${escapeHtml(font.weight ?? '—')}</dd></div><div><dt>Element bounds</dt><dd>x ${escapeHtml(coordinate(bounds.x))}, y ${escapeHtml(coordinate(bounds.y))} · ${escapeHtml(coordinate(bounds.width))} × ${escapeHtml(coordinate(bounds.height))}</dd></div><div><dt>Capture time</dt><dd>${escapeHtml(capture.capturedAt ?? 'Not recorded')}</dd></div><div><dt>Actual captured page</dt><dd>${location}</dd></div><div><dt>Browser version</dt><dd>${escapeHtml(capture.browserVersion ?? 'Not recorded')}</dd></div><div><dt>User agent</dt><dd>${escapeHtml(capture.userAgent ?? 'Not recorded')}</dd></div><div><dt>Device pixel ratio</dt><dd>${escapeHtml(coordinate(viewport.deviceScaleFactor))}</dd></div><div><dt>PNG sample dimensions</dt><dd>${escapeHtml(coordinate(capture.sampleSize?.width))} × ${escapeHtml(coordinate(capture.sampleSize?.height))} · ${escapeHtml(capture.pixelCount ?? '—')} pixels</dd></div><div><dt>Method</dt><dd><code>${escapeHtml(capture.method ?? 'bounding-box-quickcheck')}</code></dd></div></dl></details>
     ${reasons.length ? `<section class="notes"><h3>Why this result needs attention</h3><ul>${reasons.map(reason => `<li>${escapeHtml(reason)}</li>`).join('')}</ul></section>` : ''}
@@ -136,6 +144,7 @@ export function renderReport(report) {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="referrer" content="no-referrer"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'"><title>Contrast Evidence — ${escapeHtml(report.selector)}</title>
 <style>
 :root{color-scheme:light;--ink:#182235;--muted:#526078;--line:#dce3ee;--paper:#f6f8fc;--accent:#244fe0}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:15px;line-height:1.55}a{color:var(--accent);text-underline-offset:3px;overflow-wrap:anywhere}a:focus-visible,summary:focus-visible{outline:3px solid #a64f00;outline-offset:4px}main{max-width:1120px;padding:42px 30px 58px;margin:auto}.brand{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:36px}.mark{background:var(--accent);color:white;border-radius:8px;width:35px;height:35px;display:grid;place-items:center;font-weight:750}.brand strong{font-size:17px;letter-spacing:-.3px}.brand span:last-child{margin-left:auto;color:var(--muted);font-size:12px;letter-spacing:.02em}.eyebrow{font-size:11px;letter-spacing:.02em;font-weight:750;color:var(--muted);margin:0 0 8px}h1{font-family:inherit;font-weight:650;letter-spacing:-1.25px;font-size:clamp(30px,4.2vw,46px);line-height:1.08;margin:0 0 18px;max-width:770px}.intro{max-width:720px;color:var(--muted);font-size:16px}.source{border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:28px;padding:20px 0;display:grid;grid-template-columns:1fr 1fr;gap:16px}.source dt{font-size:11px;letter-spacing:.02em;color:var(--muted);margin-bottom:5px}.source dd{margin:0;overflow-wrap:anywhere}.source .wide{grid-column:1/-1}code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.87em;overflow-wrap:anywhere}.summary{display:flex;flex-wrap:wrap;gap:9px;margin:23px 0 29px}.badge{border:1px solid;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:650;white-space:nowrap}.quickcheck-clear{color:#2548a8;background:#edf3ff;border-color:#ccd9f6}.needs-review{color:#714500;background:#fff1ce;border-color:#e7cb89}.unsupported{color:#555464;background:#eeeef3;border-color:#d6d6df}.capture{background:white;border:1px solid var(--line);border-radius:14px;padding:26px;margin:20px 0;box-shadow:0 5px 20px #172c3105}.capture-heading{display:flex;justify-content:space-between;align-items:center;gap:15px}.capture-heading h2{font-size:22px;letter-spacing:-.5px;margin:0;font-weight:650}.capture-heading h2 span{font-size:12px;font-weight:400;letter-spacing:0;color:var(--muted)}.measurement{display:flex;justify-content:space-between;gap:25px;margin:26px 0 16px;border-top:1px solid var(--line);padding-top:21px}.muted{color:var(--muted);font-size:13px}.ratio{font-size:45px;line-height:1.1;letter-spacing:-1.7px;font-weight:600;margin:8px 0}.threshold{text-align:right;min-width:150px}.threshold strong{display:block;font-size:24px;line-height:1.1;margin-top:10px;font-weight:600;letter-spacing:-.6px}.precision{font-size:12px;color:var(--muted);margin:0;max-width:550px}.sample-text{padding:13px 16px;background:#f3f6fc;border-left:3px solid #8daaf3;white-space:pre-wrap;overflow-wrap:anywhere;max-height:180px;overflow:auto;font-size:14px}.images{display:grid;grid-template-columns:1fr 1fr;gap:17px;margin-top:22px}figure{margin:0;min-width:0}figcaption{font-size:12px;font-weight:650;color:var(--muted);margin-bottom:8px}.crop,.missing{min-height:115px;border:1px solid var(--line);border-radius:8px;background:repeating-conic-gradient(#f5f5f5 0% 25%,#fff 0% 50%) 50%/16px 16px;display:flex;align-items:center;justify-content:center;padding:15px;overflow:auto}.crop img{display:block;max-width:100%;height:auto;max-height:340px;object-fit:contain}.missing{font-size:13px;color:var(--muted);background:#f4f6fb}.pixel{display:flex;gap:30px;margin:17px 0 20px}.pixel dt,.facts dt{font-size:11px;color:var(--muted);margin-bottom:4px}.pixel dd,.facts dd{font-size:13px;margin:0;overflow-wrap:anywhere}details{border-top:1px solid var(--line);padding-top:13px}summary{cursor:pointer;font-size:13px;font-weight:650}.facts{display:grid;grid-template-columns:1fr 1fr;gap:15px 22px;margin-bottom:0}.notes{border-top:1px solid var(--line);margin-top:18px;padding-top:14px}.notes h3{font-size:13px;margin:0 0 7px}.notes ul{font-size:13px;padding-left:20px;margin:0;color:var(--muted)}.method{margin-top:33px;padding:25px 0;border-top:1px solid var(--line)}.method h2{font-size:20px;letter-spacing:-.3px;margin:0 0 13px}.method p{max-width:820px;font-size:14px;color:var(--muted)}footer{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:17px}@media(max-width:650px){main{padding:25px 17px}.brand{margin-bottom:28px}.brand span:last-child{display:none}.source{grid-template-columns:1fr}.capture{padding:18px;border-radius:10px}.capture-heading h2{font-size:19px}.capture-heading h2 span{display:block;margin-top:3px}.badge{font-size:11px;padding:4px 8px}.measurement{gap:15px}.threshold{min-width:115px}.ratio{font-size:36px}.threshold strong{font-size:21px}.images,.facts{grid-template-columns:1fr}.pixel{display:grid;gap:12px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}@media print{body{background:white}main{max-width:none;padding:0}.capture{break-inside:avoid;box-shadow:none}details .facts{display:grid}a{color:inherit}}
+.crop.marked-crop{display:block;max-height:480px}.pixel-frame{position:relative;width:min(100%,var(--raster-width),var(--fit-width));margin-inline:auto}.crop .pixel-frame img{width:100%;height:auto;max-width:none;max-height:none}.worst-marker{position:absolute;width:14px;height:14px;box-sizing:border-box;border:2px solid #ffdf65;border-radius:50%;box-shadow:0 0 0 1px #182235;transform:translate(-50%,-50%);pointer-events:none}.zoom-label{font-size:13px;margin-left:7px;cursor:pointer}.zoom-crops{accent-color:#244fe0}.zoom-crops:focus-visible{outline:3px solid #a64f00;outline-offset:3px}.zoom-crops:checked~.images .pixel-frame{width:calc(var(--raster-width)*2)}
 </style></head><body><main>
 <div class="brand"><span class="mark" aria-hidden="true">C</span><strong>Contrast Evidence</strong><span>Portable capture report</span></div>
 <header><p class="eyebrow">Bounding-box quickcheck</p><h1>${headline}</h1><p class="intro">Compare a text element with the background captured behind it. Review flags identify places to inspect; they do not establish a WCAG failure.</p></header>
@@ -149,6 +158,7 @@ ${report.captures.map((capture, index) => `${capture.pageUrl && capture.pageUrl 
 
 export async function writeReport(report, directory) {
   const output = path.resolve(directory);
+  report = createReport(report.captures, { url: report.url, selector: report.selector, createdAt: report.createdAt });
   const html = renderReport(report);
   const json = `${JSON.stringify(report, null, 2)}\n`;
   await mkdir(output, { recursive: true });
