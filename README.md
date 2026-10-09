@@ -1,5 +1,7 @@
 # Contrast Evidence
 
+[![Checks](https://github.com/builtbyhuy/contrast-evidence/actions/workflows/checks.yml/badge.svg)](https://github.com/builtbyhuy/contrast-evidence/actions/workflows/checks.yml)
+
 **Text over a photo looks readable. Can you show why?**
 
 Capture the actual element, its background without text, and the lowest contrast in its rectangle. Keep the evidence in a portable report. Built for frontend developers and accessibility reviewers resolving contrast checks over photos and gradients.
@@ -41,6 +43,8 @@ await browser.close();
 ```
 
 This package is available from the repository, not yet published to npm. In the cloned project, import from `./src/index.js`; another project can install it with `npm install github:builtbyhuy/contrast-evidence`. API declarations are included.
+
+For an AI assistant, install the folder `skills/contrast-evidence` in its skill directory (Codex: `~/.codex/skills/contrast-evidence`). The skill guides capture and interpretation; install the tool separately as above.
 
 ## What the result means
 
