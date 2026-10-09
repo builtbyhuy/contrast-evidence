@@ -119,5 +119,26 @@
     "captureSupportedControls": 3,
     "newTests": 27
   },
-  "baselineCommit": "070c6adb9f386280b60589e0e94b939bd4e3f890"
+  "baselineCommit": "070c6adb9f386280b60589e0e94b939bd4e3f890",
+  "publication": {
+    "implementationCommit": "09a21eed461387e1cf3d0625bb6b3ef37b7cf16a",
+    "ci": {
+      "demoTest": "success",
+      "conclusion": "success",
+      "npmTest": "success",
+      "url": "https://github.com/builtbyhuy/contrast-evidence/actions/runs/37899465342"
+    },
+    "live": {
+      "browser": "154.0.8037.98",
+      "url": "https://builtbyhuy.github.io/contrast-evidence/examples/hero/?fixed=1",
+      "guideVisible": true,
+      "htmlExport": true,
+      "exampleAndFixNavigation": true,
+      "noPageErrors": true
+    },
+    "pages": {
+      "conclusion": "success",
+      "url": "https://github.com/builtbyhuy/contrast-evidence/actions/runs/37899463859"
+    }
+  }
 }

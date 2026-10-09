@@ -35,6 +35,8 @@ Windows, Node24.19.0, Playwright1.62.1. Earlier checks used Edge154.0.4258.62. E
 - An independent integrated pass checked demo → guide → example at 1440/390/320, executed the displayed API example, generated real before/after CLI reports, and checked numeric/status agreement, marker positions, shared zoom, offline operation and visible line breaks.
 - Original/adjusted example pages and the resulting reports were rendered and inspected. No page errors or horizontal overflow appeared in the checked flows.
 
+The implementation commit [`09a21ee`](https://github.com/builtbyhuy/contrast-evidence/commit/09a21eed461387e1cf3d0625bb6b3ef37b7cf16a) passed [Linux/Chromium CI](https://github.com/builtbyhuy/contrast-evidence/actions/runs/37899465342), including `npm test` and `npm run test:demo`. [Pages deployment](https://github.com/builtbyhuy/contrast-evidence/actions/runs/37899463859) succeeded. Fresh Chrome readback verified the hosted guide, HTML download and navigation from the example to its adjusted state, with no page errors.
+
 Run the repository test command with an installed browser:
 
 ```sh
